@@ -24,12 +24,11 @@ export class FlowNode {
     id: string;
     data: FlowNodeData;
     position: FlowNodePosition;
-    type: string;
+    // type: string;
     constructor(id: string, data: FlowNodeData, position: FlowNodePosition){
         this.id = id;
         this.data = data;
         this.position = position;
-        this.type = 'output';
     }
 }
 export interface ChildNodes {
@@ -116,7 +115,6 @@ export class Trie {
         numChild: number | null, 
         numChildren: number | null
     ) {
-        console.log('getGraph NODE ID: ', node.id)
         const flowNode: FlowNode = this.createFlowNode(
             parentFlowNode == null ?
             { x: 0, y: 0 } :
@@ -131,7 +129,6 @@ export class Trie {
             const numSiblings = (Object.keys(node.children)).length;
             const childNode = node.children[letter];
             const edge: Edge = this.createEdge(node, childNode);
-            console.log('EDGE: ', edge);
             this.nodesAndEdges.addEdge(edge);   
             this.getGraph(childNode, flowNode, i, numSiblings);
             i++;
@@ -154,7 +151,6 @@ export class Trie {
         numChildren: number
     ): FlowNode {
         const nextAngle = this.calculateNextAngle(numChildren, numChild);
-        console.log('create flow node letter: ', node.letter);
         return new FlowNode(
             node.id.toString(),
             {
