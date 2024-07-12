@@ -13,7 +13,6 @@ export const TriesDiagram: FunctionComponent<TrieProps> = ({trie}) => {
     const [nodes, setNodes] = useState<Array<Node>>([]);
     const [edges, setEdges] = useState<Array<Edge>>([]);
 
-
     const updateTrie = (word: string) => {
         trie.addWord(word);
         trie.getGraph(trie.root, null, 1, 1);
