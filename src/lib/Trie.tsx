@@ -174,5 +174,5 @@ export class Trie {
     calculateNodeCoordinates(angle: number, prevPosition: XYCoord): XYCoord {
         return {x: Math.floor(Math.sinh(angle) * 100) + prevPosition.x, y: Math.floor(Math.cosh(angle) * 100) + prevPosition.y};
     }
-
+// TODO: after functioning properly, memoize trie structure
 }
