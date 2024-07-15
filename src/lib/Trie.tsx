@@ -24,7 +24,7 @@ export class FlowNode {
     id: string;
     data: FlowNodeData;
     position: FlowNodePosition;
-    // type: string;
+    type: string = 'diagramNode';
     constructor(id: string, data: FlowNodeData, position: FlowNodePosition){
         this.id = id;
         this.data = data;
@@ -49,7 +49,7 @@ export class Trie {
 
     constructor(num: number | null) {
         this.lastIdUsed = num == null ? 0 : num;
-        this.root = new TrieNode('', 0);
+        this.root = new TrieNode('ROOT', 0);
         // this.nodeGraph = {}
         this.nodesAndEdges = new FlowNodesAndEdges();
     }

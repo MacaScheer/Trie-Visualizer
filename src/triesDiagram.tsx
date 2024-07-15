@@ -3,12 +3,17 @@ import '@xyflow/react/dist/style.css';
 import './App.css'
 import { FunctionComponent, useState} from 'react';
 import { Trie } from './lib/Trie';
+import { DiagramNode } from './lib/DiagramNode';
 
 type TrieProps = {
     trie: Trie,
 }
 
 export const TriesDiagram: FunctionComponent<TrieProps> = ({trie}) => {
+    const nodeTypes =
+        // useMemo(() => (
+            { diagramNode: DiagramNode }
+        // ), []);
     const [wordToInsert, setWordToInsert] = useState<string>('');
     const [nodes, setNodes] = useState<Array<Node>>([]);
     const [edges, setEdges] = useState<Array<Edge>>([]);
@@ -19,7 +24,6 @@ export const TriesDiagram: FunctionComponent<TrieProps> = ({trie}) => {
         setNodes(trie.getNodes());
         setEdges(trie.getEdges());
     };
-
     return (
         <>
             <div className='triesFilmInsert'>
@@ -27,7 +31,7 @@ export const TriesDiagram: FunctionComponent<TrieProps> = ({trie}) => {
                 <button name="add name" onClick={() => updateTrie(wordToInsert)}>Add Word </button>
             </div>
             <div className='flowTriesContainer'>
-                <ReactFlow fitView nodes={nodes} edges={edges}>
+                <ReactFlow fitView nodes={nodes} edges={edges} nodeTypes={nodeTypes}>
                     <Background />
                     <Controls showInteractive={false} />
                 </ReactFlow>
