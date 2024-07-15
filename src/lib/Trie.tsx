@@ -34,9 +34,6 @@ export class FlowNode {
 export interface ChildNodes {
     [index: string]: TrieNode;
 }
-export interface FlowNodeGraph {
-    [index: number]: FlowNode
-}
 export type XYCoord = {
     x: number,
     y: number
@@ -45,12 +42,10 @@ export class Trie {
     lastIdUsed: number;
     root: TrieNode;
     nodesAndEdges: FlowNodesAndEdges;
-    // nodeGraph: FlowNodeGraph;
 
     constructor(num: number | null) {
         this.lastIdUsed = num == null ? 0 : num;
         this.root = new TrieNode('ROOT', 0);
-        // this.nodeGraph = {}
         this.nodesAndEdges = new FlowNodesAndEdges();
     }
     addWord(word: string) {
@@ -106,7 +101,6 @@ export class Trie {
         return this.nodesAndEdges.nodes;
     }
     clearGraphNodesAndEdges() {
-        // this.nodeGraph = {};
         this.nodesAndEdges.clearNodesAndEdges();
     }
     getGraph(
@@ -115,9 +109,6 @@ export class Trie {
         numChild: number | null, 
         numChildren: number | null
     ) {
-        console.log('node: ', node.letter, 'parent: ', parentFlowNode?.data.letter, parentFlowNode?.position.x, parentFlowNode?.position.y);
-        console.log(node.letter, `${numChild}` + '/' + `${numChildren}`);
-
         const flowNode: FlowNode = this.createFlowNode(
             parentFlowNode == null ?
             { x: 0, y: 0 } :
@@ -141,7 +132,6 @@ export class Trie {
     createEdge(node: TrieNode, childNode: TrieNode): Edge {
         return {
             id: node.id.toString() + '-' + 'edge' + '-' + (childNode.id ?? ''),
-            // label: node.letter,
             source: node.id.toString(),
             target: childNode.id.toString(),
         };
@@ -153,7 +143,6 @@ export class Trie {
         numChildren: number
     ): FlowNode {
         const nextAngle = this.calculateNextAngle(numChildren, numChild);
-        console.log('next angle (rad): ', nextAngle);
         return new FlowNode(
             node.id.toString(),
             {
@@ -168,10 +157,9 @@ export class Trie {
         if (numChildren === 1){
             return 0;
         }
-        return Math.floor(ONE_EIGHTY_RADIANS / numChildren) * childNum;
+        return Math.floor((ONE_EIGHTY_RADIANS / numChildren) * childNum);
     }
     calculateNodeCoordinates(angle: number, prevPosition: XYCoord): XYCoord {
-        return {x: Math.floor(Math.sinh(angle) * 20) + prevPosition.x, y: Math.floor(Math.cosh(angle) * 40) + prevPosition.y};
+        return {x: Math.floor(Math.sinh(angle) * 10) + prevPosition.x, y: 50 + prevPosition.y};
     }
-// TODO: after functioning properly, memoize trie structure
 }
