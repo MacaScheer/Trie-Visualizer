@@ -1,9 +1,9 @@
 import { ReactFlow, Controls, Background, Node, Edge } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import './App.css'
-import { FunctionComponent, useState} from 'react';
-import { Trie } from './lib/Trie';
-import { DiagramNode } from './lib/DiagramNode';
+import '../App.css'
+import { FunctionComponent, useMemo, useState} from 'react';
+import { Trie } from '../lib/Trie';
+import { DiagramNode } from './DiagramNode';
 
 type TrieProps = {
     trie: Trie,
@@ -11,9 +11,9 @@ type TrieProps = {
 
 export const TriesDiagram: FunctionComponent<TrieProps> = ({trie}) => {
     const nodeTypes =
-        // useMemo(() => (
+        useMemo(() => (
             { diagramNode: DiagramNode }
-        // ), []);
+        ), []);
     const [wordToInsert, setWordToInsert] = useState<string>('');
     const [nodes, setNodes] = useState<Array<Node>>([]);
     const [edges, setEdges] = useState<Array<Edge>>([]);

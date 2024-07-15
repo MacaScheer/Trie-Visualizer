@@ -11,7 +11,7 @@ export class TrieNode {
         this.id = id;
     }
 }
-const TOTAL_ANGLE_RADIANS = 135 * Math.PI / 180;
+const ONE_EIGHTY_RADIANS = Math.PI;
 type FlowNodePosition = {
     x: number
     y: number
@@ -115,6 +115,9 @@ export class Trie {
         numChild: number | null, 
         numChildren: number | null
     ) {
+        console.log('node: ', node.letter, 'parent: ', parentFlowNode?.data.letter, parentFlowNode?.position.x, parentFlowNode?.position.y);
+        console.log(node.letter, `${numChild}` + '/' + `${numChildren}`);
+
         const flowNode: FlowNode = this.createFlowNode(
             parentFlowNode == null ?
             { x: 0, y: 0 } :
@@ -138,10 +141,9 @@ export class Trie {
     createEdge(node: TrieNode, childNode: TrieNode): Edge {
         return {
             id: node.id.toString() + '-' + 'edge' + '-' + (childNode.id ?? ''),
-            label: node.letter,
+            // label: node.letter,
             source: node.id.toString(),
             target: childNode.id.toString(),
-            // type: 'step'
         };
     }
     createFlowNode(
@@ -151,6 +153,7 @@ export class Trie {
         numChildren: number
     ): FlowNode {
         const nextAngle = this.calculateNextAngle(numChildren, numChild);
+        console.log('next angle (rad): ', nextAngle);
         return new FlowNode(
             node.id.toString(),
             {
@@ -165,10 +168,10 @@ export class Trie {
         if (numChildren === 1){
             return 0;
         }
-        return Math.floor(TOTAL_ANGLE_RADIANS / numChildren) * childNum;
+        return Math.floor(ONE_EIGHTY_RADIANS / numChildren) * childNum;
     }
     calculateNodeCoordinates(angle: number, prevPosition: XYCoord): XYCoord {
-        return {x: Math.floor(Math.sinh(angle) * 100) + prevPosition.x, y: Math.floor(Math.cosh(angle) * 100) + prevPosition.y};
+        return {x: Math.floor(Math.sinh(angle) * 20) + prevPosition.x, y: Math.floor(Math.cosh(angle) * 40) + prevPosition.y};
     }
 // TODO: after functioning properly, memoize trie structure
 }

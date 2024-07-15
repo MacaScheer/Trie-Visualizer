@@ -1,5 +1,5 @@
 import './App.css'
-import { TriesDiagram } from './triesDiagram';
+import { TriesDiagram } from './components/TriesDiagram';
 
 import { Trie } from './lib/Trie';
 

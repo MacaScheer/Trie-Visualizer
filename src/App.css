@@ -44,14 +44,10 @@
 .appMain {
   display: flex;
   margin: auto;
-  /* width: 100%;
-  height: 100%; */
 }
 .flowTriesContainer {
-  /* display: flex; 
-  flex-direction: row;  */
-  width: 800px;
-  height: 600px;
+  width: 1200px;
+  height: 1200px;
 }
 .triesFilmInsert {
   display: flex;
