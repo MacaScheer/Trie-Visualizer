@@ -7,9 +7,9 @@ export class TrieNode {
     letter: string;
     level: number;
     id: number;
-    constructor(letter: string, level: number | null, id: number) {
+    constructor( id: number, letter: string, level: number) {
         this.letter = letter;
-        this.level = level == null ? 0 : level;
+        this.level = level;
         this.id = id;
     }
 }
@@ -44,10 +44,12 @@ export class Trie {
     lastIdUsed: number;
     root: TrieNode;
     nodesAndEdges: FlowNodesAndEdges;
+    trieNodes: Array<TrieNode | null>;
     constructor(id: number | null) {
         this.lastIdUsed = id == null ? 0 : id;
-        this.root = new TrieNode('<>', 0, 0);
+        this.root = new TrieNode(0, '<>', 0);
         this.nodesAndEdges = new FlowNodesAndEdges();
+        this.trieNodes = [];
     }
     addWord(word: string) {
         this.clearGraphNodesAndEdges();
@@ -65,14 +67,12 @@ export class Trie {
         let nextNode;
         if (!node.children[letter]) {
             this.lastIdUsed++;
-            nextNode = new TrieNode(letter, this.lastIdUsed, node.level + 1);
+            nextNode = new TrieNode(this.lastIdUsed, letter, node.level + 1);
             node.children[letter] = nextNode
         } else {
             nextNode = node.children[letter]
         }
-        if (nextNode != null) {
-            this.insertRecursive(word.slice(1), nextNode)
-        }
+        this.insertRecursive(word.slice(1), nextNode)
     }
     wordsWithPrefix(prefix: string, node: TrieNode):Array<string> {
         if (prefix.length === 0) {
@@ -130,9 +130,20 @@ export class Trie {
         }
       return;
     }
+    resetTrieNodes() {
+        this.trieNodes = [];
+        this.getTrieNodes(this.root);
+    }
+    getTrieNodes(node: TrieNode) {
+        this.trieNodes.push(node);
+        for (const letter in node.children) {
+            this.getTrieNodes(node.children[letter]);
+        }
+        return;
+    }
     createEdge(node: TrieNode, childNode: TrieNode): Edge {
         return {
-            id: node.id.toString() + '-' + 'edge' + '-' + (childNode.id ?? ''),
+            id: node.id + '::' + node.letter + '-' + 'edge' + '-' + (childNode.letter ?? ''),
             source: node.id.toString(),
             target: childNode.id.toString(),
         };
@@ -150,6 +161,7 @@ export class Trie {
                 label: node.letter,
                 letter: node.letter,
             },
+            
             this.calculateNodeCoordinates(node.level, nextAngle, parentFlowNodePosition),
         );
         
@@ -161,6 +173,6 @@ export class Trie {
         return Math.floor((ONE_EIGHTY_RADIANS / numChildren) * childNum);
     }
     calculateNodeCoordinates(level: number, angle: number, prevPosition: XYCoord): XYCoord {
-        return {x: Math.floor(Math.sinh(angle) * 10) + prevPosition.x, y: level * 50};
+        return {x: Math.floor(Math.sinh(angle) * level * 10) + prevPosition.x, y: prevPosition.y + 50};
     }
 }

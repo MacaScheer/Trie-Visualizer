@@ -20,12 +20,11 @@ export const TriesDiagram: FunctionComponent<TrieProps> = ({trie}) => {
 
     const updateTrie = (word: string) => {
         trie.addWord(word);
-        trie.getGraph(trie.root, null, 1, 1);
+        trie.getGraph(trie.root, null, null, null);
         setNodes(trie.getNodes());
         setEdges(trie.getEdges());
+        trie.resetTrieNodes();
     };
-
-    console.log('NODES: ', trie.getNodes());
     return (
         <>
             <div className='triesFilmInsert'>
