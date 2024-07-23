@@ -24,6 +24,8 @@ export const TriesDiagram: FunctionComponent<TrieProps> = ({trie}) => {
         setNodes(trie.getNodes());
         setEdges(trie.getEdges());
     };
+
+    console.log('NODES: ', trie.getNodes());
     return (
         <>
             <div className='triesFilmInsert'>

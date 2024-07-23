@@ -46,7 +46,7 @@ export class Trie {
     nodesAndEdges: FlowNodesAndEdges;
     constructor(id: number | null) {
         this.lastIdUsed = id == null ? 0 : id;
-        this.root = new TrieNode('--ROOT--', 0, 0);
+        this.root = new TrieNode('<>', 0, 0);
         this.nodesAndEdges = new FlowNodesAndEdges();
     }
     addWord(word: string) {
@@ -150,7 +150,7 @@ export class Trie {
                 label: node.letter,
                 letter: node.letter,
             },
-            this.calculateNodeCoordinates(nextAngle, parentFlowNodePosition),
+            this.calculateNodeCoordinates(node.level, nextAngle, parentFlowNodePosition),
         );
         
     }
@@ -160,7 +160,7 @@ export class Trie {
         }
         return Math.floor((ONE_EIGHTY_RADIANS / numChildren) * childNum);
     }
-    calculateNodeCoordinates(angle: number, prevPosition: XYCoord): XYCoord {
-        return {x: Math.floor(Math.sinh(angle) * 10) + prevPosition.x, y: 50 + prevPosition.y};
+    calculateNodeCoordinates(level: number, angle: number, prevPosition: XYCoord): XYCoord {
+        return {x: Math.floor(Math.sinh(angle) * 10) + prevPosition.x, y: level * 50};
     }
 }
