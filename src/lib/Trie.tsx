@@ -5,9 +5,11 @@ export class TrieNode {
     children: ChildNodes = {};
     isTerminal: boolean = false;
     letter: string;
+    level: number;
     id: number;
-    constructor(letter: string, id: number) {
+    constructor(letter: string, level: number | null, id: number) {
         this.letter = letter;
+        this.level = level == null ? 0 : level;
         this.id = id;
     }
 }
@@ -42,10 +44,9 @@ export class Trie {
     lastIdUsed: number;
     root: TrieNode;
     nodesAndEdges: FlowNodesAndEdges;
-
-    constructor(num: number | null) {
-        this.lastIdUsed = num == null ? 0 : num;
-        this.root = new TrieNode('ROOT', 0);
+    constructor(id: number | null) {
+        this.lastIdUsed = id == null ? 0 : id;
+        this.root = new TrieNode('--ROOT--', 0, 0);
         this.nodesAndEdges = new FlowNodesAndEdges();
     }
     addWord(word: string) {
@@ -64,7 +65,7 @@ export class Trie {
         let nextNode;
         if (!node.children[letter]) {
             this.lastIdUsed++;
-            nextNode = new TrieNode(letter, this.lastIdUsed);
+            nextNode = new TrieNode(letter, this.lastIdUsed, node.level + 1);
             node.children[letter] = nextNode
         } else {
             nextNode = node.children[letter]

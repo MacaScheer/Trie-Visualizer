@@ -1,4 +1,4 @@
-import {FlowNodePosition, Trie} from './Trie';
+import {FlowNodePosition, FlowNode} from './Trie';
 /*
 This module works to space out the trie branches and nodes appropriately.
 
@@ -10,15 +10,15 @@ so we should map levels, across all trie branches, and number of branches at tha
 we need to traverse the trie, accumulating the number of branches, as we descend from node to all child branches of that node.
 */
 export type NodeCoords = {
-    [trieId: number]: FlowNodePosition
+    [flowNodeId: number]: FlowNodePosition
 }
 export interface NodeLevels {
     [level: number]: [numBranches: number]
 }
 export class NodeSpace {
-    trie: Trie;
-    constructor(trie: Trie){
-        this.trie = trie;
+    flowNode: FlowNode;
+    constructor(node: FlowNode){
+        this.flowNode = node;
     }
-
 }
+
