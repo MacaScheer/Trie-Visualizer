@@ -12,7 +12,7 @@ export class TrieNode {
     }
 }
 const ONE_EIGHTY_RADIANS = Math.PI;
-type FlowNodePosition = {
+export type FlowNodePosition = {
     x: number
     y: number
 }
