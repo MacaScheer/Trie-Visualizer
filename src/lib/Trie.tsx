@@ -130,17 +130,23 @@ export class Trie {
         }
       return;
     }
+
+    /* SPACING IDEAS:
+        we might not need angle to calculate, if we are going to reconstruct each time
+        although it could be more optimal bigO time/space.
+    */
     resetTrieNodes() {
-        this.trieNodes = [];
         this.getTrieNodes(this.root);
     }
     getTrieNodes(node: TrieNode) {
-        this.trieNodes.push(node);
+        this.nodesAndEdges.addTrieNode(node);
         for (const letter in node.children) {
             this.getTrieNodes(node.children[letter]);
         }
         return;
     }
+// 
+
     createEdge(node: TrieNode, childNode: TrieNode): Edge {
         return {
             id: node.id + '::' + node.letter + '-' + 'edge' + '-' + (childNode.letter ?? ''),
@@ -154,6 +160,7 @@ export class Trie {
         numChild: number,
         numChildren: number
     ): FlowNode {
+        console.log('LETTER: ', node.letter, 'child num: ', numChild, ' num children: ', numChildren);
         const nextAngle = this.calculateNextAngle(numChildren, numChild);
         return new FlowNode(
             node.id.toString(),
@@ -162,7 +169,7 @@ export class Trie {
                 letter: node.letter,
             },
             
-            this.calculateNodeCoordinates(node.level, nextAngle, parentFlowNodePosition),
+            this.calculateNodeCoordinates(nextAngle, parentFlowNodePosition),
         );
         
     }
@@ -170,9 +177,11 @@ export class Trie {
         if (numChildren === 1){
             return 0;
         }
-        return Math.floor((ONE_EIGHTY_RADIANS / numChildren) * childNum);
+        return ONE_EIGHTY_RADIANS * ((childNum / numChildren) + .5);
     }
-    calculateNodeCoordinates(level: number, angle: number, prevPosition: XYCoord): XYCoord {
-        return {x: Math.floor(Math.sinh(angle) * level * 10) + prevPosition.x, y: prevPosition.y + 50};
+    calculateNodeCoordinates(angle: number, prevPosition: XYCoord): XYCoord {
+        console.log('ANGLE: ', angle);
+        console.log('Math.sin(angle)', Math.sin(angle), 'Math.cos(angle)', Math.cos(angle));
+        return {x: Math.floor(Math.sin(angle) * 20) + prevPosition.x, y: prevPosition.y + 50};
     }
 }
