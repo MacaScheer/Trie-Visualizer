@@ -15,6 +15,7 @@ export class TrieNode {
 }
 const ONE_FIFTY_RADIANS = 150 * Math.PI / 180;
 const ONE_NINETY_FIVE_RADIANS = 195 * Math.PI / 180;
+const TWO_SEVENTY_RADIANS = 270 * Math.PI / 180;
 export type FlowNodePosition = {
     x: number
     y: number
@@ -161,7 +162,7 @@ export class Trie {
     }
     calculateNextAngle(numChild: number, numSiblings: number): number {
         if (numSiblings === 0){
-            return (270 * Math.PI / 180);
+            return TWO_SEVENTY_RADIANS;
         }
         return numChild * ONE_FIFTY_RADIANS / numSiblings + ONE_NINETY_FIVE_RADIANS;
     }
