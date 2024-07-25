@@ -14,7 +14,7 @@ export class TrieNode {
     }
 }
 const ONE_FIFTY_RADIANS = 150 * Math.PI / 180;
-const ONE_NINTEY_FIVE_RADIANS = 195 * Math.PI / 180;
+const ONE_NINETY_FIVE_RADIANS = 195 * Math.PI / 180;
 export type FlowNodePosition = {
     x: number
     y: number
@@ -54,6 +54,7 @@ export class Trie {
     addWord(word: string) {
         this.clearGraphNodesAndEdges();
         this.insertRecursive(word, this.root);
+        this.getGraph();
     }
     showAllWords() {
         return this.wordsWithPrefix('', this.root);
@@ -104,79 +105,33 @@ export class Trie {
     clearGraphNodesAndEdges() {
         this.nodesAndEdges.clearNodesAndEdges();
     }
-    getGraph(
+    getGraph(){
+        this.getGraphRecursive(this.root, null, 1, 0);
+    }
+    getGraphRecursive(
         node: TrieNode, 
         parentFlowNode: FlowNode | null,
         numChild: number | null, 
-        numChildren: number | null
+        numSiblings: number | null
     ) {
         const flowNode: FlowNode = this.createFlowNode(
             parentFlowNode,
             node,
             numChild == null ? 1 : numChild,
-            numChildren == null ? 1 : numChildren,
+            numSiblings == null ? 1 : numSiblings,
         );
         this.nodesAndEdges.addNode(flowNode);
         let i = 1;
         for (const letter in node.children) {
-            const numSiblings = (Object.keys(node.children)).length;
+            const numChildren = (Object.keys(node.children)).length;
             const childNode = node.children[letter];
             const edge: Edge = this.createEdge(node, childNode);
             this.nodesAndEdges.addEdge(edge);   
-            this.getGraph(childNode, flowNode, i, numSiblings);
+            this.getGraphRecursive(childNode, flowNode, i, numChildren);
             i++;
         }
       return;
     }
-
-    /* HORIZONTAL NODE SPACING IDEAS:
-        we might not need angle to calculate, if we are going to reconstruct each time
-        although it could be more optimal bigO time/space.
-    */
-    
-   adjustByLevel(level: number) {
-        const nodesAtLevel: Array<Node> = [];
-        const nodesAtOtherLevels: Array<Node> = [];
-        this.nodesAndEdges.nodes.forEach(node => {
-                if (node.data.level === level) {
-                    nodesAtLevel.push(this.nodesAndEdges.flowNodeMap[Number(node.id)]);
-                } else {
-                    nodesAtOtherLevels.push(this.nodesAndEdges.flowNodeMap[Number(node.id)])
-                }
-        });
-       console.log('NODES AT LEVEL: ', nodesAtLevel);
-        const nodesAtLevelSortedByXCoord = this.sortNodesByXCoord(nodesAtLevel);
-        if (nodesAtLevelSortedByXCoord.length > 1) {
-            let endIdx = nodesAtLevelSortedByXCoord.length - 1;
-            let startIdx = 0;
-            while (startIdx < endIdx) {
-                nodesAtLevelSortedByXCoord[startIdx].position.x -= 150;
-                nodesAtLevelSortedByXCoord[endIdx].position.x += 150;
-                endIdx--;
-                startIdx++;
-            }
-        }
-        this.nodesAndEdges.nodes = nodesAtLevelSortedByXCoord.concat(nodesAtOtherLevels);
-    }
-    sortNodesByXCoord(nodes: Array<Node>): Array<Node> {
-        return nodes.map(node => {
-            return this.nodesAndEdges.flowNodeMap[Number(node.id)];
-        })
-        .sort((a, b) => a.position.x - b.position.x);
-    }
-    // 
-    // resetTrieNodes() {
-    //     this.getTrieNodes(this.root);
-    // }
-    // getTrieNodes(node: TrieNode) {
-    //     this.nodesAndEdges.addTrieNode(node);
-    //     for (const letter in node.children) {
-    //         this.getTrieNodes(node.children[letter]);
-    //     }
-    //     return;
-    // }
-// 
-
     createEdge(node: TrieNode, childNode: TrieNode): Edge {
         return {
             id: node.id + '::' + node.letter + '-' + 'edge' + '-' + (childNode.letter ?? ''),
@@ -188,16 +143,12 @@ export class Trie {
         parentFlowNode: FlowNode | null,
         node: TrieNode,
         numChild: number,
-        numChildren: number
+        numSiblings: number
     ): FlowNode {
         const parentPosition = parentFlowNode == null ?
             { x: 0, y: 0 } :
             parentFlowNode.position;
-        const nodeLevel = node.level;
-        
-        const nextAngle = this.calculateNextAngle(numChildren, numChild);
-            console.log('node: ', node.letter, ' angle: ', (nextAngle * 180/Math.PI));
-        
+        const nextAngle = this.calculateNextAngle(numChild, numSiblings);
         return new FlowNode(
             node.id.toString(),
             {
@@ -205,20 +156,19 @@ export class Trie {
                 letter: node.letter,
                 level: node.level,
             },
-            this.calculateNodeCoordinates(nodeLevel, numChildren, nextAngle, parentPosition),
+            this.calculateNodeCoordinates(numSiblings, nextAngle, parentPosition),
         );
     }
-    calculateNextAngle(childNum: number, numChildren: number): number{
-        return childNum * ONE_FIFTY_RADIANS / numChildren + ONE_NINTEY_FIVE_RADIANS;
+    calculateNextAngle(numChild: number, numSiblings: number): number {
+        if (numSiblings === 0){
+            return (270 * Math.PI / 180);
+        }
+        return numChild * ONE_FIFTY_RADIANS / numSiblings + ONE_NINETY_FIVE_RADIANS;
     }
-    calculateNodeCoordinates(level: number, numChildren: number, angle: number, prevPosition: XYCoord): XYCoord {
-        // console.log('ANGLE: ', angle);
+    calculateNodeCoordinates(numChildren: number, angle: number, prevPosition: XYCoord): XYCoord {
         const x = numChildren === 1 ?
             prevPosition.x :
-            Math.floor(Math.cos(angle) * 20) + prevPosition.x; 
-        // console.log('Math.sin(angle)', Math.sin(angle), 'Math.cos(angle)', Math.cos(angle));
-        const nextPosition = { x: x, y: prevPosition.y + 50 };
-        console.log('NEXT POSITION: ', nextPosition);
-        return nextPosition;
+            Math.floor(Math.cos(angle) * 80) + prevPosition.x; 
+        return { x: x, y: prevPosition.y + 50 };
     }
 }

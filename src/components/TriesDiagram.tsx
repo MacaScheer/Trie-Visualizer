@@ -19,29 +19,14 @@ export const TriesDiagram: FunctionComponent<TrieProps> = ({trie}) => {
     const [edges, setEdges] = useState<Array<Edge>>([]);
     const updateTrie = (word: string) => {
         trie.addWord(word);
-        trie.getGraph(trie.root, null, null, null);
         setNodes(trie.getNodes());
         setEdges(trie.getEdges());
-        // trie.resetTrieNodes();
     };
-
-    // 
-    const [level, setLevel] = useState<number>(0);
-    const adjustNodeLevel = () => {
-        trie.adjustByLevel(level);
-        setNodes(trie.getNodes());
-    }
-    // console.log('NODES', nodes);
-// 
     return (
         <>
             <div className='triesFilmInsert'>
                 <input placeholder="Film Name" type="text" onChange={e => setWordToInsert(e.target.value)} />
                 <button name="add name" onClick={() => updateTrie(wordToInsert)}>add word </button>
-                {/*  */}
-                <input placeholder="Level" type="number" onChange={e => setLevel(Number(e.target.value))} />
-                <button name="adjust level" onClick={() => adjustNodeLevel()}>adjust node level </button>
-                {/*  */}
             </div>
             <div className='flowTriesContainer'>
                 <ReactFlow fitView nodes={nodes} edges={edges} nodeTypes={nodeTypes}>
