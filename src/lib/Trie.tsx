@@ -13,7 +13,8 @@ export class TrieNode {
         this.id = id;
     }
 }
-const ONE_EIGHTY_RADIANS = Math.PI;
+const ONE_FIFTY_RADIANS = 150 * Math.PI / 180;
+const ONE_NINTEY_FIVE_RADIANS = 195 * Math.PI / 180;
 export type FlowNodePosition = {
     x: number
     y: number
@@ -21,6 +22,7 @@ export type FlowNodePosition = {
 type FlowNodeData = {
     label: string
     letter: string
+    level: number
 }
 export class FlowNode {
     id: string;
@@ -44,12 +46,10 @@ export class Trie {
     lastIdUsed: number;
     root: TrieNode;
     nodesAndEdges: FlowNodesAndEdges;
-    trieNodes: Array<TrieNode | null>;
     constructor(id: number | null) {
         this.lastIdUsed = id == null ? 0 : id;
         this.root = new TrieNode(0, '<>', 0);
         this.nodesAndEdges = new FlowNodesAndEdges();
-        this.trieNodes = [];
     }
     addWord(word: string) {
         this.clearGraphNodesAndEdges();
@@ -68,11 +68,11 @@ export class Trie {
         if (!node.children[letter]) {
             this.lastIdUsed++;
             nextNode = new TrieNode(this.lastIdUsed, letter, node.level + 1);
-            node.children[letter] = nextNode
+            node.children[letter] = nextNode;
         } else {
-            nextNode = node.children[letter]
+            nextNode = node.children[letter];
         }
-        this.insertRecursive(word.slice(1), nextNode)
+        this.insertRecursive(word.slice(1), nextNode);
     }
     wordsWithPrefix(prefix: string, node: TrieNode):Array<string> {
         if (prefix.length === 0) {
@@ -111,9 +111,7 @@ export class Trie {
         numChildren: number | null
     ) {
         const flowNode: FlowNode = this.createFlowNode(
-            parentFlowNode == null ?
-            { x: 0, y: 0 } :
-            parentFlowNode.position,
+            parentFlowNode,
             node,
             numChild == null ? 1 : numChild,
             numChildren == null ? 1 : numChildren,
@@ -131,20 +129,52 @@ export class Trie {
       return;
     }
 
-    /* SPACING IDEAS:
+    /* HORIZONTAL NODE SPACING IDEAS:
         we might not need angle to calculate, if we are going to reconstruct each time
         although it could be more optimal bigO time/space.
     */
-    resetTrieNodes() {
-        this.getTrieNodes(this.root);
-    }
-    getTrieNodes(node: TrieNode) {
-        this.nodesAndEdges.addTrieNode(node);
-        for (const letter in node.children) {
-            this.getTrieNodes(node.children[letter]);
+    
+   adjustByLevel(level: number) {
+        const nodesAtLevel: Array<Node> = [];
+        const nodesAtOtherLevels: Array<Node> = [];
+        this.nodesAndEdges.nodes.forEach(node => {
+                if (node.data.level === level) {
+                    nodesAtLevel.push(this.nodesAndEdges.flowNodeMap[Number(node.id)]);
+                } else {
+                    nodesAtOtherLevels.push(this.nodesAndEdges.flowNodeMap[Number(node.id)])
+                }
+        });
+       console.log('NODES AT LEVEL: ', nodesAtLevel);
+        const nodesAtLevelSortedByXCoord = this.sortNodesByXCoord(nodesAtLevel);
+        if (nodesAtLevelSortedByXCoord.length > 1) {
+            let endIdx = nodesAtLevelSortedByXCoord.length - 1;
+            let startIdx = 0;
+            while (startIdx < endIdx) {
+                nodesAtLevelSortedByXCoord[startIdx].position.x -= 150;
+                nodesAtLevelSortedByXCoord[endIdx].position.x += 150;
+                endIdx--;
+                startIdx++;
+            }
         }
-        return;
+        this.nodesAndEdges.nodes = nodesAtLevelSortedByXCoord.concat(nodesAtOtherLevels);
     }
+    sortNodesByXCoord(nodes: Array<Node>): Array<Node> {
+        return nodes.map(node => {
+            return this.nodesAndEdges.flowNodeMap[Number(node.id)];
+        })
+        .sort((a, b) => a.position.x - b.position.x);
+    }
+    // 
+    // resetTrieNodes() {
+    //     this.getTrieNodes(this.root);
+    // }
+    // getTrieNodes(node: TrieNode) {
+    //     this.nodesAndEdges.addTrieNode(node);
+    //     for (const letter in node.children) {
+    //         this.getTrieNodes(node.children[letter]);
+    //     }
+    //     return;
+    // }
 // 
 
     createEdge(node: TrieNode, childNode: TrieNode): Edge {
@@ -155,33 +185,40 @@ export class Trie {
         };
     }
     createFlowNode(
-        parentFlowNodePosition: FlowNodePosition,
+        parentFlowNode: FlowNode | null,
         node: TrieNode,
         numChild: number,
         numChildren: number
     ): FlowNode {
-        console.log('LETTER: ', node.letter, 'child num: ', numChild, ' num children: ', numChildren);
+        const parentPosition = parentFlowNode == null ?
+            { x: 0, y: 0 } :
+            parentFlowNode.position;
+        const nodeLevel = node.level;
+        
         const nextAngle = this.calculateNextAngle(numChildren, numChild);
+            console.log('node: ', node.letter, ' angle: ', (nextAngle * 180/Math.PI));
+        
         return new FlowNode(
             node.id.toString(),
             {
                 label: node.letter,
                 letter: node.letter,
+                level: node.level,
             },
-            
-            this.calculateNodeCoordinates(nextAngle, parentFlowNodePosition),
+            this.calculateNodeCoordinates(nodeLevel, numChildren, nextAngle, parentPosition),
         );
-        
     }
     calculateNextAngle(childNum: number, numChildren: number): number{
-        if (numChildren === 1){
-            return 0;
-        }
-        return ONE_EIGHTY_RADIANS * ((childNum / numChildren) + .5);
+        return childNum * ONE_FIFTY_RADIANS / numChildren + ONE_NINTEY_FIVE_RADIANS;
     }
-    calculateNodeCoordinates(angle: number, prevPosition: XYCoord): XYCoord {
-        console.log('ANGLE: ', angle);
-        console.log('Math.sin(angle)', Math.sin(angle), 'Math.cos(angle)', Math.cos(angle));
-        return {x: Math.floor(Math.sin(angle) * 20) + prevPosition.x, y: prevPosition.y + 50};
+    calculateNodeCoordinates(level: number, numChildren: number, angle: number, prevPosition: XYCoord): XYCoord {
+        // console.log('ANGLE: ', angle);
+        const x = numChildren === 1 ?
+            prevPosition.x :
+            Math.floor(Math.cos(angle) * 20) + prevPosition.x; 
+        // console.log('Math.sin(angle)', Math.sin(angle), 'Math.cos(angle)', Math.cos(angle));
+        const nextPosition = { x: x, y: prevPosition.y + 50 };
+        console.log('NEXT POSITION: ', nextPosition);
+        return nextPosition;
     }
 }

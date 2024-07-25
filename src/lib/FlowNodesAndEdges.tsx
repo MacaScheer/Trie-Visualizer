@@ -1,16 +1,16 @@
 import type { Node, Edge } from '@xyflow/react';
-import type {TrieNode, XYCoord } from './Trie';
+// import type {TrieNode} from './Trie';
 
 export class FlowNodesAndEdges {
     nodes: Array<Node>;
-    trieNodes: Array<TrieNode>;
+    // trieNodes: Array<TrieNode>;
     edges: Array<Edge>;
     flowNodeMap: {[id: number]: Node};
     constructor() {
         this.edges = [];
         this.nodes = [];
         this.flowNodeMap = {};
-        this.trieNodes = [];
+        // this.trieNodes = [];
     }
     addNode(node: Node) {
         this.nodes.push(node);
@@ -19,46 +19,47 @@ export class FlowNodesAndEdges {
     addEdge(edge: Edge) {
         this.edges.push(edge);
     }
-    addTrieNode(node: TrieNode) {
-        this.trieNodes.push(node);
-    }
+    // addTrieNode(node: TrieNode) {
+    //     this.trieNodes.push(node);
+    // }
     clearNodesAndEdges() {
         this.edges = [];
         this.nodes = [];
-        this.trieNodes = [];
+        // this.trieNodes = [];
     }
-    adjustByLevel(level: number) {
-        const nodeIDsAtLevel: Array<number> = [];
-        this.trieNodes.forEach(node => {
-                if (node.level === level) {
-                    nodeIDsAtLevel.push(node.id);
-                }
-        });
-        const nodesSortedByXCoord = this.sortNodesByXCoord(nodeIDsAtLevel);
-        const medianXCoord = this.findMedianXCoord(nodesSortedByXCoord);
-        if (nodeIDsAtLevel.length > 1) {
-            for (let i = 1; i < nodeIDsAtLevel.length; i++){
-                let prevFlowNode = this.flowNodeMap[nodeIDsAtLevel[i - 1]];
-                let flowNode = this.flowNodeMap[nodeIDsAtLevel[i]];
-                if (Math.abs(prevFlowNode.position.x - flowNode.position.x) < 50) {
-                    prevFlowNode.position.x -= 25;
-                }
-            }
-        }
-        
-    }
-    sortNodesByXCoord(nodeIDs: Array<number>): Array<Node> {
-        return nodeIDs.map(id => {
-            return this.flowNodeMap[id];
-        })
-        .sort((a, b) => a.position.x - b.position.x);
-    }
-    findMedianXCoord(nodes: Array<Node>): number {
-        const length = nodes.length;
-        if (length % 2 === 0) {
-            return ((nodes[length / 2].position.x + nodes[(length / 2) - 1].position.x) / 2);
-        } else {
-            return nodes[length / 2].position.x;
-        }
-    }
+
+
+
+    // adjustByLevel(level: number) {
+    //     const nodesAtLevel: Array<Node> = [];
+    //     const nodesAtOtherLevels: Array<Node> = [];
+    //     this.trieNodes.forEach(node => {
+    //             if (node.level === level) {
+    //                 nodesAtLevel.push(this.flowNodeMap[node.id]);
+    //             } else {
+    //                 nodesAtOtherLevels.push(this.flowNodeMap[node.id])
+    //             }
+    //     });
+    //     const nodesAtLevelSortedByXCoord = this.sortNodesByXCoord(nodesAtLevel);
+    //     if (nodesAtLevelSortedByXCoord.length > 1) {
+    //         let endIdx = nodesAtLevelSortedByXCoord.length - 1;
+    //         let startIdx = 0;
+    //         while (startIdx > endIdx) {
+    //             nodesAtLevelSortedByXCoord[startIdx].position.x -= 25;
+    //             nodesAtLevelSortedByXCoord[endIdx].position.x += 25;
+    //             endIdx--;
+    //             startIdx++;
+    //         }
+    //     }
+    //     this.nodes = nodesAtLevelSortedByXCoord.concat(nodesAtOtherLevels);
+    // }
+    // sortNodesByXCoord(nodes: Array<Node>): Array<Node> {
+    //     return nodes.map(node => {
+    //         return this.flowNodeMap[Number(node.id)];
+    //     })
+    //     .sort((a, b) => a.position.x - b.position.x);
+    // }
+    // findMedianNode(nodes: Array<Node>): number {
+    //         return nodes[Math.floor(nodes.length / 2)].id;
+    // }
 }
