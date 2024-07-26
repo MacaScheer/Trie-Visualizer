@@ -1,21 +1,21 @@
 import { Node, Edge } from '@xyflow/react';
 import { FlowNodesAndEdges } from './FlowNodesAndEdges';
+import { ONE_FIFTY_RADIANS, ONE_NINETY_FIVE_RADIANS, TWO_SEVENTY_RADIANS, GREEN, RED } from './Constants';
 
 export class TrieNode {
     children: ChildNodes = {};
+    color: string;
     isTerminal: boolean = false;
     letter: string;
     level: number;
     id: number;
-    constructor( id: number, letter: string, level: number) {
+    constructor(id: number, letter: string, level: number) {
         this.letter = letter;
         this.level = level;
         this.id = id;
+        this.color = GREEN;
     }
 }
-const ONE_FIFTY_RADIANS = 150 * Math.PI / 180;
-const ONE_NINETY_FIVE_RADIANS = 195 * Math.PI / 180;
-const TWO_SEVENTY_RADIANS = 270 * Math.PI / 180;
 export type FlowNodePosition = {
     x: number
     y: number
@@ -24,6 +24,7 @@ type FlowNodeData = {
     label: string
     letter: string
     level: number
+    color: string
 }
 export class FlowNode {
     id: string;
@@ -97,6 +98,41 @@ export class Trie {
             }
         }
     }
+    changeNodeColors(word: string) {
+        const wordArr: Array<string> = word.split("");
+        if (this.searchIter(wordArr)) {
+            let letter: string | undefined;
+            let node = this.root;
+        while (wordArr.length > 0) {
+            letter = wordArr.shift()
+            if (letter) {          
+                if (node.children[letter]) {
+                    node.color = RED;
+                    node = node.children[letter]
+                } else {
+                    return false
+                }
+            }
+        }
+            if (node.isTerminal) return true;
+        }
+    }
+    searchIter(wordArr: Array<string>) {
+        let letter: string | undefined;
+        let node = this.root;
+        while (wordArr.length > 0) {
+            letter = wordArr.shift()
+            if (letter) {          
+                if (node.children[letter]) {
+                    node = node.children[letter]
+                } else {
+                    return false
+                }
+            }
+        }
+        if (node.isTerminal) return true
+        return false
+    }
     getEdges(): Array<Edge> {
         return this.nodesAndEdges.edges;
     }
@@ -153,6 +189,7 @@ export class Trie {
         return new FlowNode(
             node.id.toString(),
             {
+                color: node.color,
                 label: node.letter,
                 letter: node.letter,
                 level: node.level,
