@@ -27,19 +27,18 @@ export const TriesDiagram: FunctionComponent<TrieProps> = ({trie}) => {
         trie.addWord(word);
         resetNodeAndEdges();
     };
-    const searchWithPrefix = (): Array<string> => {
-        trie.changeNodeColors(prefixToSearch);
+    const searchWithPrefix = () => {
+        trie.wordsWithPrefix(prefixToSearch, trie.root);
         trie.getGraph();
         resetNodeAndEdges();
-        return trie.wordsWithPrefix(prefixToSearch, trie.root);
     }
     return (
         <>
-            <div className='triesFilmInsert'>
-                <input placeholder="Film Name" type="text" onChange={e => setWordToInsert(e.target.value)} />
-                <button name="add name" onClick={() => updateTrie(wordToInsert)}>add word</button>
-                <input placeholder="Search Prefixes" type="text" onChange={e => setPrefixToSearch(e.target.value)} />
-                <button name="add name" onClick={() => searchWithPrefix()}>search with prefix</button>
+            <div id="tries-film-insert" className='triesFilmInsert'>
+                <input id="tries-type-word-input" placeholder="word to insert" type="text" onChange={e => setWordToInsert(e.target.value)} />
+                <button type="button" id="tries-add-add-word-button" onClick={() => updateTrie(wordToInsert)}>add word</button>
+                <input placeholder="prefixes" type="text" onChange={e => setPrefixToSearch(e.target.value)} />
+                <button id='tries-search-prefixes' onClick={() => searchWithPrefix()}>search with prefix</button>
             </div>
             <div className='flowTriesContainer'>
                 <ReactFlow fitView nodes={nodes} edges={edges} nodeTypes={nodeTypes}>

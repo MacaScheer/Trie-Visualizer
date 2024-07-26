@@ -78,60 +78,26 @@ export class Trie {
         this.insertRecursive(word.slice(1), nextNode);
     }
     wordsWithPrefix(prefix: string, node: TrieNode):Array<string> {
+        node.color = RED;
         if (prefix.length === 0) {
-            const allWords: Array<string> = []
-            if (node.isTerminal) allWords.push('')
+            const allWords: Array<string> = [];
+            if (node.isTerminal) allWords.push('');
             for (const letter in node.children) {
-                const child = node.children[letter]
-                const suffs = this.wordsWithPrefix('', child)
-                const words = suffs.map(suf => letter + suf)
-                allWords.push(...words)
+                const child = node.children[letter];
+                const suffs = this.wordsWithPrefix('', child);
+                const words = suffs.map(suf => letter + suf);
+                allWords.push(...words);
             }
-            return allWords
+            return allWords;
         } else {
             const letter = prefix[0];
             if (node.children[letter] !== undefined) {
-                const suffixes = this.wordsWithPrefix(prefix.slice(1), node.children[letter])
+                const suffixes = this.wordsWithPrefix(prefix.slice(1), node.children[letter]);
                 return suffixes.map(suf => letter + suf);
             } else {
                 return []
             }
         }
-    }
-    changeNodeColors(word: string) {
-        const wordArr: Array<string> = word.split("");
-        if (this.searchIter(wordArr)) {
-            let letter: string | undefined;
-            let node = this.root;
-        while (wordArr.length > 0) {
-            letter = wordArr.shift()
-            if (letter) {          
-                if (node.children[letter]) {
-                    node.color = RED;
-                    node = node.children[letter]
-                } else {
-                    return false
-                }
-            }
-        }
-            if (node.isTerminal) return true;
-        }
-    }
-    searchIter(wordArr: Array<string>) {
-        let letter: string | undefined;
-        let node = this.root;
-        while (wordArr.length > 0) {
-            letter = wordArr.shift()
-            if (letter) {          
-                if (node.children[letter]) {
-                    node = node.children[letter]
-                } else {
-                    return false
-                }
-            }
-        }
-        if (node.isTerminal) return true
-        return false
     }
     getEdges(): Array<Edge> {
         return this.nodesAndEdges.edges;
@@ -142,7 +108,8 @@ export class Trie {
     clearGraphNodesAndEdges() {
         this.nodesAndEdges.clearNodesAndEdges();
     }
-    getGraph(){
+    getGraph() {
+        this.clearGraphNodesAndEdges();
         this.getGraphRecursive(this.root, null, 1, 0);
     }
     getGraphRecursive(
