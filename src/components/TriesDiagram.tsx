@@ -18,7 +18,7 @@ export const TriesDiagram: FunctionComponent<TrieProps> = ({trie}) => {
     const [nodes, setNodes] = useState<Array<Node>>([]);
     const [edges, setEdges] = useState<Array<Edge>>([]);
     const [prefixToSearch, setPrefixToSearch] = useState<string>('');
-    
+    const [words, setWords] = useState<Array<string | null>>([]);
     const resetNodeAndEdges = () => {
         setNodes(trie.getNodes());
         setEdges(trie.getEdges());
@@ -28,9 +28,13 @@ export const TriesDiagram: FunctionComponent<TrieProps> = ({trie}) => {
         resetNodeAndEdges();
     };
     const searchWithPrefix = () => {
-        trie.wordsWithPrefix(prefixToSearch, trie.root);
         trie.getGraph();
         resetNodeAndEdges();
+        const words = trie.wordsWithPrefix(prefixToSearch, trie.root);
+        setWords(words);
+        trie.getGraph();
+        resetNodeAndEdges();
+        return words;
     }
     return (
         <>
@@ -39,6 +43,11 @@ export const TriesDiagram: FunctionComponent<TrieProps> = ({trie}) => {
                 <button type="button" id="tries-add-add-word-button" onClick={() => updateTrie(wordToInsert)}>add word</button>
                 <input placeholder="prefixes" type="text" onChange={e => setPrefixToSearch(e.target.value)} />
                 <button id='tries-search-prefixes' onClick={() => searchWithPrefix()}>search with prefix</button>
+                <>
+                    <ul>
+                        {words.map(word => <li>{word}</li>)}
+                    </ul>
+                </>
             </div>
             <div className='flowTriesContainer'>
                 <ReactFlow fitView nodes={nodes} edges={edges} nodeTypes={nodeTypes}>
