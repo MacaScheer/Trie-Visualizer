@@ -1,19 +1,16 @@
-import { Node, Edge } from '@xyflow/react';
+import { Edge, Node } from '@xyflow/react';
 import { FlowNodesAndEdges } from './FlowNodesAndEdges';
 import { ONE_FIFTY_RADIANS, ONE_NINETY_FIVE_RADIANS, TWO_SEVENTY_RADIANS, GREEN, RED } from './Constants';
 
-export class TrieNode {
-    children: ChildNodes = {};
-    color: string;
-    isTerminal: boolean = false;
-    letter: string;
-    level: number;
-    id: number;
-    constructor(id: number, letter: string, level: number) {
-        this.letter = letter;
-        this.level = level;
+export class FlowNode {
+    id: string;
+    type: string = 'diagramNode';
+    position: FlowNodePosition;
+    data: FlowNodeData;
+    constructor(id: string, position: FlowNodePosition, data: FlowNodeData){
         this.id = id;
-        this.color = GREEN;
+        this.position = position;
+        this.data = data;
     }
 }
 export type FlowNodePosition = {
@@ -21,37 +18,43 @@ export type FlowNodePosition = {
     y: number
 }
 type FlowNodeData = {
+    children: FlowNodeGraph;
+    color: string
+    isTerminal: boolean
     label: string
     letter: string
     level: number
-    color: string
 }
-export class FlowNode {
-    id: string;
-    data: FlowNodeData;
-    position: FlowNodePosition;
-    type: string = 'diagramNode';
-    constructor(id: string, data: FlowNodeData, position: FlowNodePosition){
-        this.id = id;
-        this.data = data;
-        this.position = position;
-    }
-}
-export interface ChildNodes {
-    [index: string]: TrieNode;
+export interface FlowNodeGraph {
+    [id: string]: FlowNode;
 }
 export type XYCoord = {
     x: number,
     y: number
 }
+export type TrieGraphByCoord = {
+    [coord: number]: Array<FlowNode>;
+}
 export class Trie {
     lastIdUsed: number;
-    root: TrieNode;
+    root: FlowNode;
     nodesAndEdges: FlowNodesAndEdges;
+    allTrieNodesByID: FlowNodeGraph = {};
+    allTrieNodesByX: TrieGraphByCoord = {};
+    allTrieNodesByLevel: TrieGraphByCoord = {};
     constructor(id: number | null) {
         this.lastIdUsed = id == null ? 0 : id;
-        this.root = new TrieNode(0, '<>', 0);
+        const rootFlowData = {
+            children: {},
+            color: GREEN,
+            isTerminal: false,
+            label: '<>',
+            letter: '<>',
+            level: 0, 
+        }
+        this.root = new FlowNode('0', {x:0, y: 0}, rootFlowData);
         this.nodesAndEdges = new FlowNodesAndEdges();
+        this.allTrieNodesByID[this.root.id] = this.root;
     }
     addWord(word: string) {
         this.clearGraphNodesAndEdges();
@@ -61,29 +64,46 @@ export class Trie {
     showAllWords() {
         return this.wordsWithPrefix('', this.root);
     }
-    insertRecursive(word: string, node: TrieNode) {
+    insertRecursive(word: string, node: FlowNode) {
         if (word.length === 0) {
-            node.isTerminal = true;
+            node.data.isTerminal = true;
             return
         }
         const letter = word[0];
         let nextNode;
-        if (!node.children[letter]) {
+        if (!node.data.children[letter]) {
             this.lastIdUsed++;
-            nextNode = new TrieNode(this.lastIdUsed, letter, node.level + 1);
-            node.children[letter] = nextNode;
+            nextNode = new FlowNode(
+                this.lastIdUsed.toString(),
+                { x: 0, y: 0 },
+                {
+                    children: {},
+                    color: GREEN,
+                    isTerminal: false,
+                    label: letter,
+                    letter: letter,
+                    level: node.data.level + 1
+                },
+            );
+            if (!this.allTrieNodesByLevel[node.data.level]) {
+                this.allTrieNodesByLevel[node.data.level]  = [nextNode];
+            } else {
+                this.allTrieNodesByLevel[node.data.level].push(nextNode);
+            }
+            this.allTrieNodesByID[nextNode.id] = nextNode;
+            node.data.children[letter] = nextNode;
         } else {
-            nextNode = node.children[letter];
+            nextNode = node.data.children[letter];
         }
         this.insertRecursive(word.slice(1), nextNode);
     }
-    wordsWithPrefix(prefix: string, node: TrieNode):Array<string> {
-        node.color = RED;
+    wordsWithPrefix(prefix: string, node: FlowNode):Array<string> {
+        node.data.color = RED;
         if (prefix.length === 0) {
             const allWords: Array<string> = [];
-            if (node.isTerminal) allWords.push('');
-            for (const letter in node.children) {
-                const child = node.children[letter];
+            if (node.data.isTerminal) allWords.push('');
+            for (const letter in node.data.children) {
+                const child = node.data.children[letter];
                 const suffs = this.wordsWithPrefix('', child);
                 const words = suffs.map(suf => letter + suf);
                 allWords.push(...words);
@@ -91,8 +111,8 @@ export class Trie {
             return allWords;
         } else {
             const letter = prefix[0];
-            if (node.children[letter] !== undefined) {
-                const suffixes = this.wordsWithPrefix(prefix.slice(1), node.children[letter]);
+            if (node.data.children[letter] !== undefined) {
+                const suffixes = this.wordsWithPrefix(prefix.slice(1), node.data.children[letter]);
                 return suffixes.map(suf => letter + suf);
             } else {
                 return []
@@ -108,61 +128,68 @@ export class Trie {
     clearGraphNodesAndEdges() {
         this.nodesAndEdges.clearNodesAndEdges();
     }
+    clearNodesOnly() {
+        this.nodesAndEdges.nodes = [];
+    }
     getGraph() {
         this.clearGraphNodesAndEdges();
         this.getGraphRecursive(this.root, null, 1, 0);
+        // THIS IS BUGGY
+        this.findAndAdjustCoordinatesByLevel();
+        // NEED TO RESET NODES IN this.nodesAndEdges
     }
     getGraphRecursive(
-        node: TrieNode, 
+        node: FlowNode, 
         parentFlowNode: FlowNode | null,
-        numChild: number | null, 
-        numSiblings: number | null
+        numChild: number, 
+        numSiblings: number
     ) {
-        const flowNode: FlowNode = this.createFlowNode(
+        this.addNodePosition(
             parentFlowNode,
             node,
-            numChild == null ? 1 : numChild,
-            numSiblings == null ? 1 : numSiblings,
+            numChild,
+            numSiblings,
         );
-        this.nodesAndEdges.addNode(flowNode);
+        /* adding nodes to objects by id and x-coord */
+        if (!this.allTrieNodesByX[node.position.x]) {
+            this.allTrieNodesByX[node.position.x] = [node];
+        } else {
+            this.allTrieNodesByX[node.position.x].push(node);
+        }
+        this.allTrieNodesByID[node.id] = node;
+        this.nodesAndEdges.addNode(node);
+        /* */
+
         let i = 1;
-        for (const letter in node.children) {
-            const numChildren = (Object.keys(node.children)).length;
-            const childNode = node.children[letter];
+        for (const letter in node.data.children) {
+            const numChildren = (Object.keys(node.data.children)).length;
+            const childNode = node.data.children[letter];
             const edge: Edge = this.createEdge(node, childNode);
             this.nodesAndEdges.addEdge(edge);   
-            this.getGraphRecursive(childNode, flowNode, i, numChildren);
+            this.getGraphRecursive(childNode, node, i, numChildren);
             i++;
         }
       return;
     }
-    createEdge(node: TrieNode, childNode: TrieNode): Edge {
+    createEdge(node: FlowNode, childNode: FlowNode): Edge {
         return {
-            id: node.id + '::' + node.letter + '-' + 'edge' + '-' + (childNode.letter ?? ''),
+            id: node.id + '::' + node.data.letter + '-' + 'edge' + '-' + (childNode.data.letter ?? ''),
             source: node.id.toString(),
             target: childNode.id.toString(),
         };
     }
-    createFlowNode(
+    addNodePosition(
         parentFlowNode: FlowNode | null,
-        node: TrieNode,
+        node: FlowNode,
         numChild: number,
         numSiblings: number
-    ): FlowNode {
+    ) {
         const parentPosition = parentFlowNode == null ?
             { x: 0, y: 0 } :
             parentFlowNode.position;
         const nextAngle = this.calculateNextAngle(numChild, numSiblings);
-        return new FlowNode(
-            node.id.toString(),
-            {
-                color: node.color,
-                label: node.letter,
-                letter: node.letter,
-                level: node.level,
-            },
-            this.calculateNodeCoordinates(numSiblings, nextAngle, parentPosition),
-        );
+        const position = this.calculateNodeCoordinates(numSiblings, nextAngle, parentPosition);
+        node.position = position;
     }
     calculateNextAngle(numChild: number, numSiblings: number): number {
         if (numSiblings === 0){
@@ -173,7 +200,52 @@ export class Trie {
     calculateNodeCoordinates(numChildren: number, angle: number, prevPosition: XYCoord): XYCoord {
         const x = numChildren === 1 ?
             prevPosition.x :
-            Math.floor(Math.cos(angle) * 80) + prevPosition.x; 
-        return { x: x, y: prevPosition.y + 50 };
+            Math.floor(Math.cos(angle) * 100) + prevPosition.x; 
+        return { x: x, y: prevPosition.y + 50 }; //could use y: level * CONST
+    }
+    findAndAdjustCoordinatesByLevel() {
+        for (const level in this.allTrieNodesByLevel) {
+            const nodesAtLevelSortedbyX = this.allTrieNodesByLevel[level].sort((nodeA, nodeB) => nodeA.position.x - nodeB.position.x)
+            const needsRestructure = this.areAnyXCoordsCloseOfNodesAtLevel(nodesAtLevelSortedbyX);
+            if (needsRestructure) {
+                const medianXCoord = nodesAtLevelSortedbyX[Math.floor(nodesAtLevelSortedbyX.length / 2)].position.x;
+                const nodesAtLevel = this.restructureNodePositionByLevel(nodesAtLevelSortedbyX, medianXCoord);
+                // NEED TO REPLACE THESE NODES IN this.nodesAndEdges
+                this.allTrieNodesByLevel[level] = nodesAtLevel;
+            }
+        }
+        this.syncNodesAfterRestructureByLevel();
+    }
+    syncNodesAfterRestructureByLevel() {
+        this.clearNodesOnly();
+        this.nodesAndEdges.addNode(this.root);
+        for (const level in this.allTrieNodesByLevel) {
+            for (let i = 0; i < this.allTrieNodesByLevel[level].length; i++){
+                this.nodesAndEdges.addNode(this.allTrieNodesByLevel[level][i]);
+            }
+        }
+    }
+    restructureNodePositionByLevel(nodes: Array<FlowNode>, medianXCoord: number): Array<FlowNode>{
+        const medianIdx = Math.floor(nodes.length / 2);
+        let h = 1;
+        let i = medianIdx - 1;
+        let j = medianIdx;
+        while (i >= 0 && j < nodes.length) {
+            nodes[i].position.x = medianXCoord - (h * 50);
+            nodes[j].position.x = medianXCoord + (h * 50);
+            h++;
+            i--;
+            j++;
+        }
+        return nodes;
+    }
+    areAnyXCoordsCloseOfNodesAtLevel(nodes: Array<FlowNode>): boolean {
+        const xCoords = nodes.map(node => node.position.x);
+        for (let i = 1; i < xCoords.length; i++){
+            if (Math.abs(xCoords[i] - xCoords[i - 1]) <= 50) {
+                return true;
+            }
+        }
+        return false;
     }
 }

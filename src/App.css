@@ -42,15 +42,24 @@
 }
 
 .appMain {
-  display: flex;
   margin: auto;
 }
 .flowTriesContainer {
-  width: 1200px;
-  height: 1200px;
+  min-width: 1800px;
+  width: fit-content;
+  height: 1000px;
+  position: 'relative';
 }
 .triesFilmInsert {
-  display: flex;
   flex-direction: column;
+  position: fixed;
   z-index: 4;
+  top: 10;
+  width: 300px;
+  height: 200px;
+  left: 10;
+}
+
+.tries-add-add-wordlist {
+  margin-bottom: 20px;
 }

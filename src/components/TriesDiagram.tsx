@@ -1,19 +1,16 @@
 import { ReactFlow, Controls, Background, Node, Edge } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import '../App.css'
-import { FunctionComponent, useMemo, useState} from 'react';
+import { FunctionComponent, useState} from 'react';
 import { Trie } from '../lib/Trie';
+import { WORDS } from '../lib/Constants';
 import { DiagramNode } from './DiagramNode';
-
 type TrieProps = {
     trie: Trie,
 }
 
 export const TriesDiagram: FunctionComponent<TrieProps> = ({trie}) => {
-    const nodeTypes =
-        useMemo(() => (
-            { diagramNode: DiagramNode }
-        ), []);
+    const nodeTypes = { diagramNode: DiagramNode };
     const [wordToInsert, setWordToInsert] = useState<string>('');
     const [nodes, setNodes] = useState<Array<Node>>([]);
     const [edges, setEdges] = useState<Array<Edge>>([]);
@@ -28,24 +25,37 @@ export const TriesDiagram: FunctionComponent<TrieProps> = ({trie}) => {
         resetNodeAndEdges();
     };
     const searchWithPrefix = () => {
-        trie.getGraph();
-        resetNodeAndEdges();
         const words = trie.wordsWithPrefix(prefixToSearch, trie.root);
         setWords(words);
         trie.getGraph();
         resetNodeAndEdges();
         return words;
     }
+    console.log('nodes: ', trie.getNodes().map(n => n));
+   
+        
+    const addTestWords = () => {
+        WORDS.forEach(w => trie.addWord(w));
+        resetNodeAndEdges();
+}
+    /*
+    NOW NODES ARE NOT always BEING PLACED WHERE THEIR POSITIONS INDICATE.
+    NODES AND THEIR POSITIONS PROPS GET UPDATED PROPERLY.
+    */ 
+    
     return (
-        <>
+        <div style={{ display: 'flex', flexDirection: 'row' }}>
             <div id="tries-film-insert" className='triesFilmInsert'>
+                <div className="tries-add-add-wordlist">
+                    <button type="button" id="tries-add-add-wordlist-button" onClick={() => addTestWords()}>add word set</button>
+                </div>
                 <input id="tries-type-word-input" placeholder="word to insert" type="text" onChange={e => setWordToInsert(e.target.value)} />
-                <button type="button" id="tries-add-add-word-button" onClick={() => updateTrie(wordToInsert)}>add word</button>
+                <button type="button" id="tries-add-add-word-button" onClick={() => updateTrie(wordToInsert)}>add custom word</button>
                 <input placeholder="prefixes" type="text" onChange={e => setPrefixToSearch(e.target.value)} />
                 <button id='tries-search-prefixes' onClick={() => searchWithPrefix()}>search with prefix</button>
                 <>
                     <ul>
-                        {words.map(word => <li>{word}</li>)}
+                        {words.map((word, i) => <li key={i}>{word}</li>)}
                     </ul>
                 </>
             </div>
@@ -55,6 +65,6 @@ export const TriesDiagram: FunctionComponent<TrieProps> = ({trie}) => {
                     <Controls showInteractive={false} />
                 </ReactFlow>
             </div>
-        </>
+        </div>
     );           
 }
