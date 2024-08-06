@@ -9,8 +9,8 @@ export class FlowNode {
     data: FlowNodeData;
     constructor(id: string, position: FlowNodePosition, data: FlowNodeData){
         this.id = id;
-        this.position = position;
         this.data = data;
+        this.position = position;
     }
 }
 export type FlowNodePosition = {
@@ -56,15 +56,15 @@ export class Trie {
         this.nodesAndEdges = new FlowNodesAndEdges();
         this.allTrieNodesByID[this.root.id] = this.root;
     }
-    addWord(word: string) {
+    addWord(word: string): void {
         this.clearGraphNodesAndEdges();
         this.insertRecursive(word, this.root);
         this.getGraph();
     }
-    showAllWords() {
+    showAllWords():Array<string> {
         return this.wordsWithPrefix('', this.root);
     }
-    insertRecursive(word: string, node: FlowNode) {
+    insertRecursive(word: string, node: FlowNode): void {
         if (word.length === 0) {
             node.data.isTerminal = true;
             return
@@ -97,7 +97,7 @@ export class Trie {
         }
         this.insertRecursive(word.slice(1), nextNode);
     }
-    wordsWithPrefix(prefix: string, node: FlowNode):Array<string> {
+    wordsWithPrefix(prefix: string, node: FlowNode): Array<string> {
         node.data.color = RED;
         if (prefix.length === 0) {
             const allWords: Array<string> = [];
@@ -119,23 +119,34 @@ export class Trie {
             }
         }
     }
+    resetRoot() {
+        const rootFlowData = {
+            children: {},
+            color: GREEN,
+            isTerminal: false,
+            label: '<>',
+            letter: '<>',
+            level: 0, 
+        }
+        this.root = new FlowNode('0', {x:0, y: 0}, rootFlowData);
+    }
     getEdges(): Array<Edge> {
         return this.nodesAndEdges.edges;
     }
     getNodes(): Array<Node> {
         return this.nodesAndEdges.nodes;
     }
-    clearGraphNodesAndEdges() {
+    clearGraphNodesAndEdges(): void {
         this.nodesAndEdges.clearNodesAndEdges();
     }
-    clearNodesOnly() {
+    clearNodesOnly(): void {
         this.nodesAndEdges.nodes = [];
     }
-    getGraph() {
+    getGraph(): void {
         this.clearGraphNodesAndEdges();
         this.getGraphRecursive(this.root, null, 1, 0);
         // THIS IS BUGGY
-        this.findAndAdjustCoordinatesByLevel();
+        // this.findAndAdjustCoordinatesByLevel();
         // NEED TO RESET NODES IN this.nodesAndEdges
     }
     getGraphRecursive(
@@ -143,7 +154,7 @@ export class Trie {
         parentFlowNode: FlowNode | null,
         numChild: number, 
         numSiblings: number
-    ) {
+    ): void {
         this.addNodePosition(
             parentFlowNode,
             node,
@@ -155,6 +166,11 @@ export class Trie {
             this.allTrieNodesByX[node.position.x] = [node];
         } else {
             this.allTrieNodesByX[node.position.x].push(node);
+        }
+        if (!this.allTrieNodesByLevel[node.data.level]) {
+            this.allTrieNodesByLevel[node.data.level] = [node];
+        } else {
+            this.allTrieNodesByLevel[node.data.level].push(node);
         }
         this.allTrieNodesByID[node.id] = node;
         this.nodesAndEdges.addNode(node);
@@ -183,7 +199,7 @@ export class Trie {
         node: FlowNode,
         numChild: number,
         numSiblings: number
-    ) {
+    ): void {
         const parentPosition = parentFlowNode == null ?
             { x: 0, y: 0 } :
             parentFlowNode.position;
@@ -203,20 +219,21 @@ export class Trie {
             Math.floor(Math.cos(angle) * 100) + prevPosition.x; 
         return { x: x, y: prevPosition.y + 50 }; //could use y: level * CONST
     }
-    findAndAdjustCoordinatesByLevel() {
+
+
+    findAndAdjustCoordinatesByLevel(): void {
         for (const level in this.allTrieNodesByLevel) {
             const nodesAtLevelSortedbyX = this.allTrieNodesByLevel[level].sort((nodeA, nodeB) => nodeA.position.x - nodeB.position.x)
             const needsRestructure = this.areAnyXCoordsCloseOfNodesAtLevel(nodesAtLevelSortedbyX);
             if (needsRestructure) {
                 const medianXCoord = nodesAtLevelSortedbyX[Math.floor(nodesAtLevelSortedbyX.length / 2)].position.x;
                 const nodesAtLevel = this.restructureNodePositionByLevel(nodesAtLevelSortedbyX, medianXCoord);
-                // NEED TO REPLACE THESE NODES IN this.nodesAndEdges
                 this.allTrieNodesByLevel[level] = nodesAtLevel;
             }
         }
         this.syncNodesAfterRestructureByLevel();
     }
-    syncNodesAfterRestructureByLevel() {
+    syncNodesAfterRestructureByLevel(): void {
         this.clearNodesOnly();
         this.nodesAndEdges.addNode(this.root);
         for (const level in this.allTrieNodesByLevel) {
@@ -226,13 +243,19 @@ export class Trie {
         }
     }
     restructureNodePositionByLevel(nodes: Array<FlowNode>, medianXCoord: number): Array<FlowNode>{
+        console.log('MEDIAN X COORD: ', medianXCoord);
         const medianIdx = Math.floor(nodes.length / 2);
         let h = 1;
         let i = medianIdx - 1;
         let j = medianIdx;
         while (i >= 0 && j < nodes.length) {
+            console.log('BEFORE nodes[i].position.x ', nodes[i].position.x);
+            console.log('i', i, 'j', j, 'h', h);
             nodes[i].position.x = medianXCoord - (h * 50);
             nodes[j].position.x = medianXCoord + (h * 50);
+            console.log('AFTER nodes[j].position.x ', nodes[j].position.x);
+            console.log('AFTER nodes[i].position.x ', nodes[i].position.x);
+
             h++;
             i--;
             j++;

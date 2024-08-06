@@ -7,7 +7,7 @@ function App() {
   const trie = new Trie(0);
   return (
     <div className="appMain">
-        <TriesDiagram trie={trie}/>
+      <TriesDiagram trie={trie} />
     </div>
   )
 }

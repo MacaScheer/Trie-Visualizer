@@ -10,9 +10,9 @@ export type DiagramNodeProps = {
 
 export const DiagramNode: FunctionComponent<DiagramNodeProps> = ({ data }) => {
     return (
-        <div style={{width: '20px', height: '20px', border: 'solid', borderRadius:'5px', backgroundColor: data.color}}>
+        <div style={{ width: '20px', height: '20px', border: 'solid', borderRadius:'7px', backgroundColor: data.color}}>
             <Handle type="target" position={Position.Top} style={{left: 10}}/>
-                <label htmlFor="text" color='black'>{data.label}</label>
+            <label htmlFor="text" color='black'>{data.label}</label>
             <Handle type="source" position={Position.Bottom} style={{ left: 10 }} />
         </div>);
 }

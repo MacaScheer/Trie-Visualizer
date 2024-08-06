@@ -46,9 +46,7 @@
 }
 .flowTriesContainer {
   min-width: 1800px;
-  width: fit-content;
   height: 1000px;
-  position: 'relative';
 }
 .triesFilmInsert {
   flex-direction: column;
