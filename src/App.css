@@ -43,9 +43,12 @@
 
 .appMain {
   margin: auto;
+  width: 4000px;
+
 }
 .flowTriesContainer {
   min-width: 1800px;
+  width: 4000px;
   height: 1000px;
 }
 .triesFilmInsert {

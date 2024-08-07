@@ -243,19 +243,13 @@ export class Trie {
         }
     }
     restructureNodePositionByLevel(nodes: Array<FlowNode>, medianXCoord: number): Array<FlowNode>{
-        console.log('MEDIAN X COORD: ', medianXCoord);
         const medianIdx = Math.floor(nodes.length / 2);
         let h = 1;
         let i = medianIdx - 1;
         let j = medianIdx;
         while (i >= 0 && j < nodes.length) {
-            console.log('BEFORE nodes[i].position.x ', nodes[i].position.x);
-            console.log('i', i, 'j', j, 'h', h);
             nodes[i].position.x = medianXCoord - (h * 50);
             nodes[j].position.x = medianXCoord + (h * 50);
-            console.log('AFTER nodes[j].position.x ', nodes[j].position.x);
-            console.log('AFTER nodes[i].position.x ', nodes[i].position.x);
-
             h++;
             i--;
             j++;
